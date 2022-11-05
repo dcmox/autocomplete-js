@@ -1,0 +1,81 @@
+<html>
+    <head>
+        <title>
+            Trie Demo
+        </title>
+        <style>
+            body{ 
+                font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                margin: 40px;
+            }
+            #wordList {
+                border: 1px solid #ddd;
+            }
+            #closestWords {
+                border: 1px solid #ddd;
+            }
+        </style>
+    </head>
+    <body>
+        <h3>Trie Demo - Simple autocompletion</h3>
+        <input type="text" id="suggest" /> <span id="isWord"></span><br />
+        <div id="suggestions"></div><br /><br />
+        <div id="wordList"> </div><br /><br />
+        <div id="closestWords"></div>
+        <script src="./autocomplete.js"></script>
+        <script>
+            const wordList = ['boom', 'hint', 'crazy', 'app', 'door', 'dude', 'drink', 'drill', 'drank', 
+            'application', 'apple', 'hell', 'hello', 'hi', 'he', 'help', 'helping', 'a', 'am', 
+            'ample', 'amp', 'amped', 'brad', 'brady', 'brag', 'bragged', 'bragging', 'cat', 'catch', 
+            'caught', 'catfish', 'dog', 'dogged', 'dodged', 'dodge', 'dragon', 'drag', 'drape', 'dragged',
+            'drake', 'draped', 'drilled', 'sort', 'something', 'silk', 'sought', 'site', 'sight', 'brandy', 'zero', 'yelp', 'yell', 'yello'];
+
+            var trie = buildTrie(wordList);
+            let state = trie;
+            let states = [ Object.assign({}, state) ];
+
+            document.getElementById('suggestions').innerHTML = 'Suggested chars: <br />' + 
+            Object.keys(state).filter((s) => s !== 'word').sort().toString();
+
+            document.getElementById('wordList').innerHTML = '<b>Words</b>: <br />' + wordList.sort().join(' ');
+            document.getElementById('closestWords').innerHTML = '<b>Closest words</b>: <br />';
+
+            document.getElementById('suggest').onkeydown = (e) => {
+                if (e.ctrlKey || e.shiftKey || e.altKey || e.key === 'Backspace') {
+                    return;
+                }
+                if (!state[e.key]) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+            }
+
+            document.getElementById('suggest').oninput = (e) => {
+                if(e.inputType === 'deleteContentBackward'){
+                    if (document.getElementById('suggest').value === '') {
+                        state = trie;
+                        states = [ Object.assign({}, state) ];
+                    } else {
+                        states = states.slice(0, states.length - 1);
+                        state = states[states.length - 1];
+                    }
+                } else {
+                    state = state[e.data];
+                    states.push(state);
+                }
+
+                document.getElementById('closestWords').innerHTML = '<b>Closest words</b>: <br />' + 
+                (closestWords(state) || []).join(' ');
+
+                if (state.word) {
+                    document.getElementById('isWord').innerText = 'Press enter to search word';
+                } else {
+                    document.getElementById('isWord').innerText = '';
+                }
+                document.getElementById('suggestions').innerHTML = 'Suggested chars: <br />' + 
+                Object.keys(state).filter((s) => s !== 'word').sort().toString();
+            }
+        </script>
+    </body>
+</html>
